@@ -333,7 +333,7 @@ func (e *Etcd) runServer() {
 		}
 
 		if e.mode == PeerMode {
-			if e.PeerServer.RaftServer().State() == "stopped" {
+			if e.PeerServer.RaftServer().IsStopped() {
 				e.PeerServer.Stop()
 				e.StandbyServer.Stop()
 				return

@@ -102,11 +102,13 @@ type Server interface {
 	Start() error
 	Stop()
 	Running() bool
+	IsStopped() bool
 	Do(command Command) (interface{}, error)
 	TakeSnapshot() error
 	LoadSnapshot() error
 	AddEventListener(string, EventListener)
 	FlushCommitIndex()
+	IsBackupMode() bool
 	QuitBackupMode() error
 }
 
@@ -542,6 +544,13 @@ func (s *server) Running() bool {
 	return (s.state != Stopped && s.state != Initialized)
 }
 
+// Checks if the server is stopped.
+func (s *server) IsStopped() bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	return s.state == Stopped
+}
+
 //--------------------------------------
 // Term
 //--------------------------------------
@@ -715,7 +724,7 @@ func (s *server) followerLoop() {
 
 		case <-timeoutChan:
 			// only allow synced follower to promote to candidate
-			if s.promotable() && !s.backupMode {
+			if s.promotable() && !s.IsBackupMode() {
 				s.setState(Candidate)
 			} else {
 				update = true
@@ -1472,9 +1481,17 @@ func (s *server) readConf() error {
 	return nil
 }
 
+func (s *server) IsBackupMode() bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	return s.backupMode == true
+}
+
 func (s *server) QuitBackupMode() error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	s.debugln("Now backupmode: ", s.backupMode)
-	if s.backupMode != true {
+	if s.backupMode == false {
 		return NotBackupModeError
 	}
 	/*

@@ -363,7 +363,6 @@ func (s *Server) SpeedTestHandler(w http.ResponseWriter, req *http.Request) erro
 	return nil
 }
 
-// Executes a speed test to evaluate the performance of update replication.
 func (s *Server) QuitBackModeHandler(w http.ResponseWriter, req *http.Request) error {
 	err := s.peerServer.RaftServer().QuitBackupMode()
 	if err != nil {
