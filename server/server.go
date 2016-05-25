@@ -137,6 +137,7 @@ func (s *Server) installV2(r *mux.Router) {
 	s.handleFunc(r2, "/v2/stats/leader", s.GetLeaderStatsHandler).Methods("GET", "HEAD")
 	s.handleFunc(r2, "/v2/stats/store", s.GetStoreStatsHandler).Methods("GET", "HEAD")
 	s.handleFunc(r2, "/v2/speedTest", s.SpeedTestHandler).Methods("GET", "HEAD")
+	s.handleFunc(r2, "/v2/quitBackupMode", s.QuitBackModeHandler).Methods("GET", "HEAD")
 	s.handleFunc(r2, "/v2/migration/snapshot", s.SnapshotHandler).Methods("GET")
 }
 
@@ -359,6 +360,18 @@ func (s *Server) SpeedTestHandler(w http.ResponseWriter, req *http.Request) erro
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("speed test success"))
+	return nil
+}
+
+// Executes a speed test to evaluate the performance of update replication.
+func (s *Server) QuitBackModeHandler(w http.ResponseWriter, req *http.Request) error {
+	err := s.peerServer.RaftServer().QuitBackupMode()
+	if err != nil {
+		return etcdErr.NewError(300, err.Error(), s.Store().Index())
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("I am so happy!\n"))
+	}
 	return nil
 }
 

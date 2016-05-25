@@ -93,6 +93,7 @@ type Config struct {
 		RemoveDelay  float64 `toml:"remove_delay" env:"ETCD_CLUSTER_REMOVE_DELAY"`
 		SyncInterval float64 `toml:"sync_interval" env:"ETCD_CLUSTER_SYNC_INTERVAL"`
 	}
+	BackupMode bool `toml:backup`
 }
 
 // New returns a Config initialized with default values.
@@ -116,6 +117,7 @@ func New() *Config {
 	c.Cluster.ActiveSize = server.DefaultActiveSize
 	c.Cluster.RemoveDelay = server.DefaultRemoveDelay
 	c.Cluster.SyncInterval = server.DefaultSyncInterval
+	c.BackupMode = false
 	return c
 }
 
@@ -281,6 +283,8 @@ func (c *Config) LoadFlags(arguments []string) error {
 	f.IntVar(&c.Cluster.ActiveSize, "cluster-active-size", c.Cluster.ActiveSize, "")
 	f.Float64Var(&c.Cluster.RemoveDelay, "cluster-remove-delay", c.Cluster.RemoveDelay, "")
 	f.Float64Var(&c.Cluster.SyncInterval, "cluster-sync-interval", c.Cluster.SyncInterval, "")
+
+	f.BoolVar(&c.BackupMode, "backup", c.BackupMode, "")
 
 	// BEGIN IGNORED FLAGS
 	f.StringVar(&path, "config", "", "")

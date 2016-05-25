@@ -69,7 +69,7 @@ func newTestServer(name string, transporter Transporter) Server {
 	if err := os.MkdirAll(p, 0644); err != nil {
 		panic(err.Error())
 	}
-	server, _ := NewServer(name, p, transporter, nil, nil, "")
+	server, _ := NewServer(name, p, transporter, nil, nil, "", false)
 	if testListenerLoggerEnabled {
 		fn := func(e Event) {
 			server := e.Source().(Server)
@@ -83,7 +83,7 @@ func newTestServer(name string, transporter Transporter) Server {
 }
 
 func newTestServerWithPath(name string, transporter Transporter, p string) Server {
-	server, _ := NewServer(name, p, transporter, nil, nil, "")
+	server, _ := NewServer(name, p, transporter, nil, nil, "", false)
 	return server
 }
 

@@ -206,7 +206,7 @@ func (e *Etcd) Run() {
 		}
 		raftTransporter.SetTLSConfig(*raftClientTLSConfig)
 	}
-	raftServer, err := raft.NewServer(e.Config.Name, e.Config.DataDir, raftTransporter, e.Store, e.PeerServer, "")
+	raftServer, err := raft.NewServer(e.Config.Name, e.Config.DataDir, raftTransporter, e.Store, e.PeerServer, "", e.Config.BackupMode)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -333,6 +333,11 @@ func (e *Etcd) runServer() {
 		}
 
 		if e.mode == PeerMode {
+			if e.PeerServer.RaftServer().State() == "stopped" {
+				e.PeerServer.Stop()
+				e.StandbyServer.Stop()
+				return
+			}
 			peerURLs := e.Registry.PeerURLs(e.PeerServer.RaftServer().Leader(), e.Config.Name)
 			e.StandbyServer.SyncCluster(peerURLs)
 			e.setMode(StandbyMode)
@@ -350,7 +355,7 @@ func (e *Etcd) runServer() {
 			// It should be removed when raft restart is implemented.
 			heartbeatInterval := time.Duration(e.Config.Peer.HeartbeatInterval) * time.Millisecond
 			electionTimeout := time.Duration(e.Config.Peer.ElectionTimeout) * time.Millisecond
-			raftServer, err := raft.NewServer(e.Config.Name, e.Config.DataDir, e.PeerServer.RaftServer().Transporter(), e.Store, e.PeerServer, "")
+			raftServer, err := raft.NewServer(e.Config.Name, e.Config.DataDir, e.PeerServer.RaftServer().Transporter(), e.Store, e.PeerServer, "", e.Config.BackupMode)
 			if err != nil {
 				log.Fatal(err)
 			}

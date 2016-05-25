@@ -194,6 +194,8 @@ func (p *Peer) sendAppendEntriesRequest(req *AppendEntriesRequest) {
 	if resp == nil {
 		p.server.DispatchEvent(newEvent(HeartbeatIntervalEventType, p, nil))
 		debugln("peer.append.timeout: ", p.server.Name(), "->", p.Name)
+		commitIndex := p.server.log.currentIndex()
+		p.server.log.setCommitIndex(commitIndex)
 		return
 	}
 	traceln("peer.append.resp: ", p.server.Name(), "<-", p.Name)

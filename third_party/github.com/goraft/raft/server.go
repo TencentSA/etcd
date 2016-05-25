@@ -57,6 +57,7 @@ var NotLeaderError = errors.New("raft.Server: Not current leader")
 var DuplicatePeerError = errors.New("raft.Server: Duplicate peer")
 var CommandTimeoutError = errors.New("raft: Command timeout")
 var StopError = errors.New("raft: Has been stopped")
+var NotBackupModeError = errors.New("raft: Not in backupmode")
 
 //------------------------------------------------------------------------------
 //
@@ -106,6 +107,7 @@ type Server interface {
 	LoadSnapshot() error
 	AddEventListener(string, EventListener)
 	FlushCommitIndex()
+	QuitBackupMode() error
 }
 
 type server struct {
@@ -144,6 +146,8 @@ type server struct {
 	connectionString string
 
 	routineGroup sync.WaitGroup
+
+	backupMode bool
 }
 
 // An internal event to be processed by the server's event loop.
@@ -164,7 +168,7 @@ type ev struct {
 // compaction is to be disabled. context can be anything (including nil)
 // and is not used by the raft package except returned by
 // Server.Context(). connectionString can be anything.
-func NewServer(name string, path string, transporter Transporter, stateMachine StateMachine, ctx interface{}, connectionString string) (Server, error) {
+func NewServer(name string, path string, transporter Transporter, stateMachine StateMachine, ctx interface{}, connectionString string, backupMode bool) (Server, error) {
 	if name == "" {
 		return nil, errors.New("raft.Server: Name cannot be blank")
 	}
@@ -186,6 +190,7 @@ func NewServer(name string, path string, transporter Transporter, stateMachine S
 		heartbeatInterval:       DefaultHeartbeatInterval,
 		maxLogEntriesPerRequest: MaxLogEntriesPerRequest,
 		connectionString:        connectionString,
+		backupMode:              backupMode,
 	}
 	s.eventDispatcher = newEventDispatcher(s)
 
@@ -710,7 +715,7 @@ func (s *server) followerLoop() {
 
 		case <-timeoutChan:
 			// only allow synced follower to promote to candidate
-			if s.promotable() {
+			if s.promotable() && !s.backupMode {
 				s.setState(Candidate)
 			} else {
 				update = true
@@ -1464,6 +1469,21 @@ func (s *server) readConf() error {
 
 	s.log.updateCommitIndex(conf.CommitIndex)
 
+	return nil
+}
+
+func (s *server) QuitBackupMode() error {
+	s.debugln("Now backupmode: ", s.backupMode)
+	if s.backupMode != true {
+		return NotBackupModeError
+	}
+	/*
+		leader := s.Leader()
+		s.currentTerm++
+		s.setState(Leader)
+		s.RemovePeer(leader)
+	*/
+	s.backupMode = false
 	return nil
 }
 
