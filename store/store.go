@@ -26,6 +26,7 @@ import (
 	"time"
 
 	etcdErr "github.com/coreos/etcd/error"
+	"github.com/coreos/etcd/log"
 	ustrings "github.com/coreos/etcd/pkg/strings"
 )
 
@@ -188,11 +189,11 @@ func (s *store) Set(nodePath string, dir bool, value string, expireTime time.Tim
 func getCompareFailCause(n *node, which int, prevValue string, prevIndex uint64) string {
 	switch which {
 	case CompareIndexNotMatch:
-		return fmt.Sprintf("[%v != %v]", prevIndex, n.ModifiedIndex)
+		return fmt.Sprintf("index [%v != %v]", prevIndex, n.ModifiedIndex)
 	case CompareValueNotMatch:
-		return fmt.Sprintf("[%v != %v]", prevValue, n.Value)
+		return fmt.Sprintf("value [%v != %v]", prevValue, n.Value)
 	default:
-		return fmt.Sprintf("[%v != %v] [%v != %v]", prevValue, n.Value, prevIndex, n.ModifiedIndex)
+		return fmt.Sprintf("value [%v != %v] index [%v != %v]", prevValue, n.Value, prevIndex, n.ModifiedIndex)
 	}
 }
 
@@ -225,6 +226,7 @@ func (s *store) CompareAndSwap(nodePath string, prevValue string, prevIndex uint
 	if ok, which := n.Compare(prevValue, prevIndex); !ok {
 		cause := getCompareFailCause(n, which, prevValue, prevIndex)
 		s.Stats.Inc(CompareAndSwapFail)
+		log.Warnf("CompareAndSwapFail: %s", cause)
 		return nil, etcdErr.NewError(etcdErr.EcodeTestFailed, cause, s.CurrentIndex)
 	}
 
@@ -327,6 +329,7 @@ func (s *store) CompareAndDelete(nodePath string, prevValue string, prevIndex ui
 	if ok, which := n.Compare(prevValue, prevIndex); !ok {
 		cause := getCompareFailCause(n, which, prevValue, prevIndex)
 		s.Stats.Inc(CompareAndDeleteFail)
+		log.Warnf("CompareAndDelteFail: %s", cause)
 		return nil, etcdErr.NewError(etcdErr.EcodeTestFailed, cause, s.CurrentIndex)
 	}
 
@@ -511,7 +514,7 @@ func (s *store) internalCreate(nodePath string, dir bool, value string, unique, 
 		valueCopy := ustrings.Clone(value)
 		eNode.Value = &valueCopy
 
-		n = newKV(s, nodePath, value, nextIndex, d, "", expireTime)
+		n = newKV(s, nodePath, value, nextIndex, nextIndex, d, "", expireTime)
 
 	} else { // create directory
 		eNode.Dir = true

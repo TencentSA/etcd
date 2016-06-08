@@ -41,12 +41,12 @@ type node struct {
 
 // newKV creates a Key-Value pair
 func newKV(store *store, nodePath string, value string, createdIndex uint64,
-	parent *node, ACL string, expireTime time.Time) *node {
+	modifiedIndex uint64, parent *node, ACL string, expireTime time.Time) *node {
 
 	return &node{
 		Path:          nodePath,
 		CreatedIndex:  createdIndex,
-		ModifiedIndex: createdIndex,
+		ModifiedIndex: modifiedIndex,
 		Parent:        parent,
 		ACL:           ACL,
 		store:         store,
@@ -354,7 +354,7 @@ func (n *node) Compare(prevValue string, prevIndex uint64) (ok bool, which int) 
 // If the node is a key-value pair, it will clone the pair.
 func (n *node) Clone() *node {
 	if !n.IsDir() {
-		return newKV(n.store, n.Path, n.Value, n.CreatedIndex, n.Parent, n.ACL, n.ExpireTime)
+		return newKV(n.store, n.Path, n.Value, n.CreatedIndex, n.ModifiedIndex, n.Parent, n.ACL, n.ExpireTime)
 	}
 
 	clone := newDir(n.store, n.Path, n.CreatedIndex, n.Parent, n.ACL, n.ExpireTime)
