@@ -275,7 +275,7 @@ func TestV2SetKeyCASOnIndexFail(t *testing.T) {
 		body := tests.ReadBodyJSON(resp)
 		assert.Equal(t, body["errorCode"], 101, "")
 		assert.Equal(t, body["message"], "Compare failed", "")
-		assert.Equal(t, body["cause"], "[10 != 3]", "")
+		assert.Equal(t, body["cause"], "index [10 != 3]", "")
 		assert.Equal(t, body["index"], 3, "")
 	})
 }
@@ -343,7 +343,7 @@ func TestV2SetKeyCASOnValueFail(t *testing.T) {
 		body := tests.ReadBodyJSON(resp)
 		assert.Equal(t, body["errorCode"], 101, "")
 		assert.Equal(t, body["message"], "Compare failed", "")
-		assert.Equal(t, body["cause"], "[AAA != XXX]", "")
+		assert.Equal(t, body["cause"], "value [AAA != XXX]", "")
 		assert.Equal(t, body["index"], 3, "")
 	})
 }
@@ -387,7 +387,7 @@ func TestV2SetKeyCASOnValueAndIndexFail(t *testing.T) {
 		body := tests.ReadBodyJSON(resp)
 		assert.Equal(t, body["errorCode"], 101, "")
 		assert.Equal(t, body["message"], "Compare failed", "")
-		assert.Equal(t, body["cause"], "[AAA != XXX] [4 != 3]", "")
+		assert.Equal(t, body["cause"], "value [AAA != XXX] index [4 != 3]", "")
 		assert.Equal(t, body["index"], 3, "")
 	})
 }
@@ -413,7 +413,7 @@ func TestV2SetKeyCASOnValueMatchAndIndexFail(t *testing.T) {
 		body := tests.ReadBodyJSON(resp)
 		assert.Equal(t, body["errorCode"], 101, "")
 		assert.Equal(t, body["message"], "Compare failed", "")
-		assert.Equal(t, body["cause"], "[4 != 3]", "")
+		assert.Equal(t, body["cause"], "index [4 != 3]", "")
 		assert.Equal(t, body["index"], 3, "")
 	})
 }
@@ -439,7 +439,7 @@ func TestV2SetKeyCASOnIndexMatchAndValueFail(t *testing.T) {
 		body := tests.ReadBodyJSON(resp)
 		assert.Equal(t, body["errorCode"], 101, "")
 		assert.Equal(t, body["message"], "Compare failed", "")
-		assert.Equal(t, body["cause"], "[AAA != XXX]", "")
+		assert.Equal(t, body["cause"], "value [AAA != XXX]", "")
 		assert.Equal(t, body["index"], 3, "")
 	})
 }

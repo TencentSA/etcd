@@ -46,7 +46,7 @@ func TestStoreGetDirectory(t *testing.T) {
 	s.Create("/foo/baz/bat", false, "Y", false, Permanent)
 	s.Create("/foo/baz/_hidden", false, "*", false, Permanent)
 	s.Create("/foo/baz/ttl", false, "Y", false, time.Now().Add(time.Second*3))
-	e, err := s.Get("/foo", true, false)
+	e, err := s.Get("/foo", true, true)
 	assert.Nil(t, err, "")
 	assert.Equal(t, e.Action, "get", "")
 	assert.Equal(t, e.Node.Key, "/foo", "")
